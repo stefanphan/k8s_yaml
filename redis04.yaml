@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis04
+  labels:
+    app: redis04-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis04
+      appCluster: redis-cluster
+  template:
+    metadata:
+      labels:
+        app: redis04
+        appCluster: redis-cluster
+    spec:
+      nodeSelector:
+        redis: second
+      volumes:
+      - name: conf
+        configMap:
+          name: redis-conf
+          items:
+          - key: redis.conf
+            path: redis.conf
+      containers:
+      - name: redis
+        image: redis:5.0.3
+        imagePullPolicy: IfNotPresent
+        command:
+          - "redis-server"
+        args:
+          - "/etc/redis/redis.conf"
+          - "--protected-mode"
+          - "no"
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "500Mi"
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/redis
+
